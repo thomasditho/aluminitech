@@ -87,8 +87,8 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     
-    // Roteamento SPA Fallback (Nota: Usamos "*all" para Express v5 conforme especificação)
-    app.get("*all", (req, res) => {
+    // Roteamento SPA Fallback (Padrão /(.*) compatível com Express v5 / path-to-regexp v8)
+    app.get("/(.*)", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
