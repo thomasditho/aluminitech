@@ -87,9 +87,16 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     
-    // Roteamento SPA Fallback (Padrão /:any* compatível com Express v5 / path-to-regexp v8)
-    app.get("/:any*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+    // Middleware robusto de fallback SPA independente de versão do Express/path-to-regexp
+    app.use((req, res, next) => {
+      if (req.method === "GET" && !req.path.startsWith("/api")) {
+        const lastSegment = req.path.split("/").pop() || "";
+        if (!lastSegment.includes(".")) {
+          res.sendFile(path.join(distPath, "index.html"));
+          return;
+        }
+      }
+      next();
     });
   }
 
