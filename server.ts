@@ -22,7 +22,7 @@ function getStripe(): Stripe {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   // Habilitar processamento de conteúdo em formato JSON nas APIs
   app.use(express.json());
@@ -87,8 +87,8 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     
-    // Roteamento SPA Fallback (Padrão /(.*) compatível com Express v5 / path-to-regexp v8)
-    app.get("/(.*)", (req, res) => {
+    // Roteamento SPA Fallback (Padrão /:any* compatível com Express v5 / path-to-regexp v8)
+    app.get("/:any*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
