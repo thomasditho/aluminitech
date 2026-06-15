@@ -451,13 +451,16 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
         </div>
 
         <div>
-          <label htmlFor="card-number-mock" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
+          <label htmlFor="c-num-val" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
             {t.cardNumberLabel}
           </label>
           <input
-            id="card-number-mock"
+            id="c-num-val"
             type="text"
             required
+            autoComplete="off"
+            data-lpignore="true"
+            data-1pignore="true"
             value={cardNumber}
             onChange={handleCardNumberChange}
             placeholder="4000 1234 5678 9010"
@@ -467,13 +470,16 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="card-expiry-mock" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
+            <label htmlFor="c-exp-val" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
               {t.expiryLabel}
             </label>
             <input
-              id="card-expiry-mock"
+              id="c-exp-val"
               type="text"
               required
+              autoComplete="off"
+              data-lpignore="true"
+              data-1pignore="true"
               value={cardExpiry}
               onChange={handleExpiryChange}
               placeholder="12/28"
@@ -481,13 +487,16 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
             />
           </div>
           <div>
-            <label htmlFor="card-cvc-mock" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
+            <label htmlFor="c-cvc-val" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
               {t.cvcLabel}
             </label>
             <input
-              id="card-cvc-mock"
+              id="c-cvc-val"
               type="text"
               required
+              autoComplete="off"
+              data-lpignore="true"
+              data-1pignore="true"
               value={cardCvc}
               onChange={handleCvcChange}
               placeholder="123"
@@ -611,6 +620,75 @@ const LanguageSelector = ({ current, onChange, theme = "dark" }: { current: Lang
 };
 
 export default function App() {
+  // Ativação do Cloaker/Anti-Inspect para proteção contra cópias e inspeção
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Bloquear F12
+      if (e.key === "F12" || e.keyCode === 123) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Bloquear atalhos comuns com Ctrl ou Cmd (Ctrl+U, Ctrl+S, Ctrl+C, Ctrl+X)
+      if (e.ctrlKey || e.metaKey) {
+        const keyLower = e.key ? e.key.toLowerCase() : "";
+        if (
+          keyLower === "u" || e.keyCode === 85 || // Exibir Código Fonte
+          keyLower === "s" || e.keyCode === 83 || // Salvar Página
+          keyLower === "c" || e.keyCode === 67 || // Copiar Conteúdo
+          keyLower === "x" || e.keyCode === 88    // Recortar Conteúdo
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      }
+
+      // Bloquear atalhos de desenvolvedor: Ctrl/Cmd + Shift + I/J/C
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+        const keyLower = e.key ? e.key.toLowerCase() : "";
+        if (
+          keyLower === "i" || e.keyCode === 73 ||
+          keyLower === "j" || e.keyCode === 74 ||
+          keyLower === "c" || e.keyCode === 67
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      }
+    };
+
+    const handleCopyCut = (e: Event) => {
+      e.preventDefault();
+    };
+
+    // Registrar observadores
+    window.addEventListener("contextmenu", handleContextMenu);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("copy", handleCopyCut);
+    window.addEventListener("cut", handleCopyCut);
+
+    // Loop debugger ativo em plano de fundo para desestabilizar ferramentas de desenvolvimento
+    const dbgInterval = setInterval(() => {
+      try {
+        (function() {
+          return false;
+        }["constructor"]("debugger")());
+      } catch (err) {}
+    }, 400);
+
+    return () => {
+      window.removeEventListener("contextmenu", handleContextMenu);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("copy", handleCopyCut);
+      window.removeEventListener("cut", handleCopyCut);
+      clearInterval(dbgInterval);
+    };
+  }, []);
+
   const [view, setView] = useState<"landing" | "checkout">("landing");
   const [currency, setCurrency] = useState<CurrencyType>("BRL");
   const [lang, setLang] = useState<LanguageType>("PT");
