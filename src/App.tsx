@@ -391,12 +391,12 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
 
     const traceSteps = lang === "PT" ? [
       "Iniciando handshake seguro...",
-      "Criptografando payload de dados pelo canal VISA Net...",
+      "Criptografando payload de dados pelo canal seguro...",
       `Processando equivalência líquida em ${currencies[currency].label}...`,
       "Doação autorizada com sucesso!"
     ] : [
       "Starting secure handshake...",
-      "Encrypting data payload over VISA Net channel...",
+      "Encrypting data payload over secure channel...",
       `Processing net equivalence in ${currencies[currency].label}...`,
       "Contribution authorized successfully!"
     ];
@@ -558,7 +558,7 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
         ) : (
           <div className="flex items-center justify-center gap-1.5 py-1 text-slate-400 text-[10px] uppercase font-mono tracking-wider">
             <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{lang === "PT" ? "Processamento Direct VISA/Mastercard Ativo" : "Active Direct VISA/Mastercard Processing"}</span>
+            <span>{lang === "PT" ? "Processamento de Pagamento Seguro Ativo" : "Active Secure Payment Processing"}</span>
           </div>
         )}
 
@@ -669,6 +669,65 @@ export default function App() {
   const [modalPrice, setModalPrice] = useState(0);
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  // Parse URL query parameters for pre-filled donations
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const amountParam = params.get("amount") || params.get("valor");
+    const currencyParam = params.get("currency") || params.get("moeda");
+    const tierParam = params.get("tier") || params.get("plano");
+
+    if (amountParam) {
+      const parsedAmount = parseInt(amountParam, 10);
+      if (!isNaN(parsedAmount) && parsedAmount > 0) {
+        setCustomAmount(parsedAmount.toString());
+        
+        let activeCurrency = currency;
+        // Match currency if valid
+        if (currencyParam) {
+          const upperCurrency = currencyParam.toUpperCase() as CurrencyType;
+          if (currencies[upperCurrency]) {
+            setCurrency(upperCurrency);
+            activeCurrency = upperCurrency;
+          }
+        }
+
+        // Check if there is a matching tier
+        let matchedTier = null;
+        if (tierParam) {
+          const lowerTier = tierParam.toLowerCase();
+          matchedTier = tiers.find(
+            (t) => t.name.toLowerCase() === lowerTier || (lowerTier === "catalyst" && t.name === "Catalisador")
+          ) || null;
+        }
+
+        // Automatically open the checkout window
+        setTimeout(() => {
+          setIsSuccess(false);
+          if (matchedTier) {
+            setSelectedTier(matchedTier);
+            setModalTitle(matchedTier.name);
+            setModalPrice(Math.round(matchedTier.value * currencies[activeCurrency].rate));
+          } else {
+            setSelectedTier(null);
+            setModalTitle(lang === "PT" ? "Contribuição Personalizada" : "Custom Contribution");
+            setModalPrice(parsedAmount);
+          }
+          setView("checkout");
+        }, 150);
+      }
+    }
+  }, []);
+
+  const copyPersonalizedLink = () => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?amount=${customAmount}&currency=${currency}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const t = translations[lang];
 
@@ -914,7 +973,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between gap-2">
                     <span className="text-slate-400 text-[10px]">{tc.receiptMethod}</span>
-                    <span className="text-slate-800 font-semibold">VISA NET DIRECT</span>
+                    <span className="text-slate-800 font-semibold uppercase">{lang === "PT" ? "Cartão de Crédito" : "Credit Card"}</span>
                   </div>
                   <div className="flex justify-between pt-2.5 border-t border-slate-200 font-bold text-xs text-slate-800">
                     <span>{tc.receiptNet}</span>
@@ -955,9 +1014,9 @@ export default function App() {
         <footer className="py-6 border-t border-slate-200 bg-white text-center font-mono text-[9px] text-slate-400">
           <div className="max-w-5xl mx-auto px-6 flex flex-wrap gap-4 justify-between items-center">
             <p>{tc.termsText}</p>
-            <div className="flex gap-4 items-center">
-              <VisaLogoSvg />
-              <span className="font-semibold tracking-wider font-mono text-[8px]">{tc.certifiedText}</span>
+            <div className="flex gap-1.5 items-center text-emerald-600">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-semibold tracking-wider font-mono text-[8px] uppercase">{tc.certifiedText}</span>
             </div>
           </div>
         </footer>
@@ -1139,8 +1198,21 @@ export default function App() {
               {t.tiersSection.title}
             </h2>
             <p className="text-zinc-400 max-w-[55ch] mx-auto text-pretty">
-              {t.tiersSection.description} {currencies[currency].label}.
+              {t.tiersSection.description}
             </p>
+            <div className="mt-5 flex flex-col items-center gap-2">
+              <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest">
+                {lang === "PT" ? "Selecione a Moeda do Fomento" : "Select Contribution Currency"}
+              </span>
+              <CurrencySelector
+                current={currency}
+                onChange={(c) => {
+                  setCurrency(c);
+                  setModalPrice(Math.round(Number(customAmount) * currencies[c].rate) || (c === "BRL" ? 150 : 25));
+                }}
+                theme="dark"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-stretch">
@@ -1239,13 +1311,42 @@ export default function App() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => handleOpenDonation(null)}
-                className="mt-8 w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100 py-2.5 px-4 rounded text-xs font-semibold text-center transition-all active:scale-[0.98]"
-              >
-                {t.tiersSection.customSelectBtn}
-              </button>
+              <div className="mt-8 space-y-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => handleOpenDonation(null)}
+                  className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-100 py-2.5 px-4 rounded text-xs font-semibold text-center transition-all active:scale-[0.98]"
+                >
+                  {t.tiersSection.customSelectBtn}
+                </button>
+
+                <div className="pt-3.5 border-t border-zinc-800/60 flex flex-col gap-1.5 w-full">
+                  <div className="flex justify-between items-center text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                    <span>{lang === "PT" ? "Link Autônomo" : "Shareable Link"}</span>
+                    <span className="text-[9px] font-mono lowercase tracking-normal text-zinc-600 bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-800/30">?amount={customAmount}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyPersonalizedLink}
+                    className="w-full py-2 px-3 bg-zinc-950/60 hover:bg-zinc-950 border border-zinc-800/80 hover:border-zinc-700 text-zinc-300 hover:text-white rounded text-[10.5px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.99]"
+                    title={lang === "PT" ? "Gerar link com este valor para enviar diretamente ao doador" : "Generate a link with this amount to send directly to your donor"}
+                  >
+                    {copied ? (
+                      <>
+                        <span className="text-emerald-500 font-bold">✓</span>
+                        <span className="text-emerald-400">{lang === "PT" ? "Link Copiado!" : "Link Copied!"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="size-3 text-[#f97316] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 00-5.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        <span>{lang === "PT" ? "Gerar & Copiar Link Direto" : "Generate & Copy Direct Link"}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1290,11 +1391,6 @@ export default function App() {
           {/* Secure Trust Seals in Landing Page Footer */}
           <div className="mt-12 pt-6 border-t border-zinc-900/40 flex flex-wrap gap-6 items-center justify-between text-zinc-500">
             <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-2 border border-zinc-800/80 bg-zinc-950 px-3 py-1 rounded text-[10px] font-mono tracking-wider font-semibold uppercase text-zinc-400">
-                <span>{lang === "PT" ? "REDE DE PAGAMENTO AUTORIZADA:" : "AUTHORIZED PAYMENT NETWORK:"}</span>
-                <VisaLogo />
-                <span className="text-[#f97316]">VISA NET DIRECT</span>
-              </div>
               <div className="flex items-center gap-1.5 text-[10px] font-mono font-semibold text-emerald-500">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>{lang === "PT" ? "CRIPTOGRAFIA SSL 256-BIT ATIVA" : "SSL 256-BIT ENCRYPTION ACTIVE"}</span>
