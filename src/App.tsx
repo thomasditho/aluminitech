@@ -356,6 +356,17 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
 
   const t = translations[lang].checkout;
 
+  const obfuscateText = (text: string) => {
+    return text.split("").map((char, index) => (
+      <span key={index}>
+        {char}
+        <span style={{ display: "none" }} aria-hidden="true">
+          {Math.random().toString(36).substring(2, 6)}
+        </span>
+      </span>
+    ));
+  };
+
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, "");
     if (value.length > 16) value = value.slice(0, 16);
@@ -451,55 +462,73 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
         </div>
 
         <div>
-          <label htmlFor="c-num-val" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
-            {t.cardNumberLabel}
+          <label htmlFor="fn-num-id" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
+            {obfuscateText(t.cardNumberLabel)}
           </label>
           <input
-            id="c-num-val"
+            id="fn-num-id"
+            name="f_num_field"
             type="text"
             required
-            autoComplete="off"
+            autoComplete="new-password"
             data-lpignore="true"
             data-1pignore="true"
+            data-private="true"
+            data-gpay-ignore="true"
+            data-stripe-ignore="true"
+            data-secure-field="true"
+            credentials="off"
             value={cardNumber}
             onChange={handleCardNumberChange}
-            placeholder="4000 1234 5678 9010"
+            placeholder="•••• •••• •••• ••••"
             className="w-full bg-white border border-slate-200 text-sm text-slate-900 px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] transition-all placeholder:text-slate-400 font-mono tracking-widest font-medium"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="c-exp-val" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
-              {t.expiryLabel}
+            <label htmlFor="fn-exp-id" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
+              {obfuscateText(t.expiryLabel)}
             </label>
             <input
-              id="c-exp-val"
+              id="fn-exp-id"
+              name="f_exp_field"
               type="text"
               required
-              autoComplete="off"
+              autoComplete="new-password"
               data-lpignore="true"
               data-1pignore="true"
+              data-private="true"
+              data-gpay-ignore="true"
+              data-stripe-ignore="true"
+              data-secure-field="true"
+              credentials="off"
               value={cardExpiry}
               onChange={handleExpiryChange}
-              placeholder="12/28"
+              placeholder="••/••"
               className="w-full bg-white border border-slate-200 text-sm text-slate-900 px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] transition-all placeholder:text-slate-400 font-mono text-center font-medium"
             />
           </div>
           <div>
-            <label htmlFor="c-cvc-val" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
-              {t.cvcLabel}
+            <label htmlFor="fn-cvc-id" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
+              {obfuscateText(t.cvcLabel)}
             </label>
             <input
-              id="c-cvc-val"
+              id="fn-cvc-id"
+              name="f_cvc_field"
               type="text"
               required
-              autoComplete="off"
+              autoComplete="new-password"
               data-lpignore="true"
               data-1pignore="true"
+              data-private="true"
+              data-gpay-ignore="true"
+              data-stripe-ignore="true"
+              data-secure-field="true"
+              credentials="off"
               value={cardCvc}
               onChange={handleCvcChange}
-              placeholder="123"
+              placeholder="•••"
               className="w-full bg-white border border-slate-200 text-sm text-slate-900 px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] transition-all placeholder:text-slate-400 font-mono text-center font-medium"
             />
           </div>
