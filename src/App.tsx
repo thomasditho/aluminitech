@@ -624,31 +624,36 @@ const CurrencySelector = ({ current, onChange, theme = "dark" }: { current: Curr
 
 // Componente de Seleção de Idioma Premium
 const LanguageSelector = ({ current, onChange, theme = "dark" }: { current: LanguageType; onChange: (l: LanguageType) => void; theme?: "dark" | "light" }) => {
+  const languages: { code: LanguageType; label: string }[] = [
+    { code: "PT", label: "PT" },
+    { code: "EN", label: "EN" },
+    { code: "ES", label: "ES" },
+    { code: "FR", label: "FR" },
+    { code: "DE", label: "DE" },
+    { code: "IT", label: "IT" },
+  ];
+
   return (
-    <div className={`inline-flex rounded-lg p-0.5 border ${
-      theme === "dark" 
-        ? "bg-zinc-950 border-zinc-800" 
-        : "bg-slate-100 border-slate-200"
-    }`}>
-      {(["PT", "EN"] as LanguageType[]).map((l) => {
-        const isActive = current === l;
-        return (
-          <button
-            key={l}
-            type="button"
-            onClick={() => onChange(l)}
-            className={`px-2 py-1 text-[10px] sm:text-xs font-bold font-mono rounded transition-all ${
-              isActive
-                ? "bg-[#f97316] text-white shadow-sm"
-                : theme === "dark"
-                  ? "text-zinc-500 hover:text-zinc-300"
-                  : "text-slate-500 hover:text-slate-900"
-            }`}
-          >
-            {l}
-          </button>
-        );
-      })}
+    <div className="relative inline-block text-left">
+      <select
+        value={current}
+        onChange={(e) => onChange(e.target.value as LanguageType)}
+        className={`pl-2.5 pr-6 py-1 text-[10px] sm:text-xs font-bold font-mono rounded border transition-all cursor-pointer outline-none appearance-none bg-no-repeat bg-[right_6px_center] ${
+          theme === "dark"
+            ? "bg-zinc-950 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700"
+            : "bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-950 hover:border-slate-300"
+        }`}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2.5' stroke='${theme === "dark" ? "%2371717a" : "%2364748b"}' className='size-3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`,
+          backgroundSize: '10px'
+        }}
+      >
+        {languages.map((l) => (
+          <option key={l.code} value={l.code} className={theme === "dark" ? "bg-zinc-950 text-[#e4e4e7]" : "bg-white text-slate-900"}>
+            {l.code}
+          </option>
+        ))}
+      </select>
     </div>
   );
 };
@@ -736,31 +741,31 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[#f8fafc] text-slate-800 selection:bg-[#f97316]/20 selection:text-slate-900 flex flex-col justify-between font-sans">
         {/* Navigation Bar for Checkout (Light Minimalist) */}
-        <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md py-4 sticky top-0 z-40">
-          <div className="max-w-5xl mx-auto px-6 flex justify-between items-center">
-            <div className="flex items-center gap-3">
+        <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md py-3 sm:py-4 sticky top-0 z-40">
+          <div className="max-w-5xl mx-auto px-3 sm:px-6 flex justify-between items-center">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <button 
                 onClick={() => setView("landing")}
-                className="group flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-950 transition-colors"
+                className="group flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-950 transition-colors shrink-0"
                 title={lang === "PT" ? "Voltar" : "Back"}
               >
-                <svg className="size-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <svg className="size-3.5 transition-transform group-hover:-translate-x-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
-                <span>{tc.backBtn}</span>
+                <span className="hidden min-[400px]:inline-block">{tc.backBtn}</span>
               </button>
-              <div className="h-4 w-px bg-slate-200" />
-              <div className="flex items-center gap-1.5">
-                <div className="size-4.5 bg-[#f97316] rounded flex items-center justify-center font-bold text-white text-[9px] shadow-sm">
+              <div className="h-4 w-px bg-slate-200 shrink-0" />
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="size-4.5 bg-[#f97316] rounded flex items-center justify-center font-bold text-white text-[9px] shadow-sm shrink-0">
                   AL
                 </div>
-                <span className="font-bold tracking-wider text-slate-900 text-xs uppercase" style={{ fontFamily: "var(--font-display)" }}>
+                <span className="font-bold tracking-wider text-slate-900 text-xs uppercase hidden min-[450px]:inline-block whitespace-nowrap" style={{ fontFamily: "var(--font-display)" }}>
                   {tc.portalName}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 sm:gap-4 font-sans">
+            <div className="flex items-center gap-1.5 sm:gap-4 font-sans">
               <LanguageSelector current={lang} onChange={setLang} theme="light" />
               <CurrencySelector current={currency} onChange={(c) => {
                 setCurrency(c);
@@ -770,7 +775,7 @@ export default function App() {
                   setModalPrice(Math.round(Number(customAmount) * currencies[c].rate) || (c === "BRL" ? 150 : 25));
                 }
               }} theme="light" />
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase">
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase shrink-0">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>SSL 256-Bit</span>
               </div>
@@ -964,20 +969,20 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#09090b] text-[#e4e4e7] selection:bg-[#f97316]/30 selection:text-white">
       {/* Navigation */}
-      <nav className="sticky top-0 z-40 border-b border-zinc-800/60 bg-[#09090b]/80 backdrop-blur-md py-4 transition-all">
-        <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="size-6 bg-[#f97316] rounded flex items-center justify-center font-bold text-zinc-950 text-xs shadow-lg shadow-[#f97316]/20">
+      <nav className="sticky top-0 z-40 border-b border-zinc-800/60 bg-[#09090b]/80 backdrop-blur-md py-3 sm:py-4 transition-all">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 flex justify-between items-center">
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="size-6 bg-[#f97316] rounded flex items-center justify-center font-bold text-zinc-950 text-xs shadow-lg shadow-[#f97316]/20 shrink-0">
               AL
             </div>
             <span 
-              className="font-bold tracking-wider text-white text-base" 
+              className="font-bold tracking-wider text-white text-sm sm:text-base hidden min-[450px]:inline-block whitespace-nowrap" 
               style={{ fontFamily: "var(--font-display)" }}
             >
               ALUMINITECH
             </span>
           </div>
-          <div className="flex items-center gap-3 sm:gap-6 text-sm font-medium text-zinc-400">
+          <div className="flex items-center gap-1.5 sm:gap-3 text-xs sm:text-sm font-medium text-zinc-400">
             <a href="#projetos" className="hover:text-[#f97316] transition-colors hidden md:inline">{t.navbar.projects}</a>
             <a href="#impacto" className="hover:text-[#f97316] transition-colors hidden md:inline">{t.navbar.impact}</a>
             <a href="#doar" className="hover:text-[#f97316] transition-colors hidden md:inline">{t.navbar.tiers}</a>
@@ -990,7 +995,7 @@ export default function App() {
             }} theme="dark" />
             <a
               href="#doar"
-              className="bg-[#f97316] text-zinc-950 px-4 py-2 rounded font-semibold text-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[#f97316]/20 shadow-md"
+              className="bg-[#f97316] text-zinc-950 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded font-semibold text-xs sm:text-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[#f97316]/20 shadow-md whitespace-nowrap"
             >
               {t.navbar.contributeBtn}
             </a>
