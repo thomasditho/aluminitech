@@ -418,54 +418,6 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
 
   return (
     <div className="space-y-6 text-left">
-      {/* COMPACT & IMMACULATELY SIZED CREDIT CARD MOUNT */}
-      <div className="flex justify-center">
-        <div className="relative w-full max-w-[280px] aspect-[1.586/1] rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-neutral-900 border border-zinc-800 text-white p-4 flex flex-col justify-between overflow-shadow select-none shadow-sm">
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col">
-              <span className="text-[8px] font-extrabold tracking-widest text-[#f97316] uppercase">ALUMINITECH</span>
-              <span className="text-[5px] text-zinc-500 uppercase tracking-widest font-semibold font-mono">{lang === "PT" ? "LABS GLOBAL APORTE" : "LABS GLOBAL CONTRIBUTION"}</span>
-            </div>
-            <VisaLogoSvg />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-5.5 rounded bg-gradient-to-br from-yellow-300/40 via-yellow-400/20 to-amber-600/10 border border-yellow-500/20 flex p-0.5" />
-            <svg className="w-3 h-3 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" d="M12 18a6 6 0 000-12m3.5 14.5a10 10 0 000-17" />
-            </svg>
-          </div>
-
-          <div>
-            <div className="font-mono text-white text-xs tracking-widest">
-              {cardNumber || "•••• •••• •••• ••••"}
-            </div>
-            <div className="flex justify-between items-end mt-2">
-              <div className="flex flex-col">
-                <span className="text-[5px] uppercase font-bold text-zinc-500 tracking-widest">{lang === "PT" ? "Titular" : "Cardholder"}</span>
-                <span className="font-mono text-[8px] text-zinc-300 uppercase truncate max-w-[130px]">
-                  {donorName || (lang === "PT" ? "NOME DO APOIADOR" : "CONTRIBUTOR NAME")}
-                </span>
-              </div>
-              <div className="flex gap-2.5">
-                <div className="flex flex-col items-center">
-                  <span className="text-[5px] uppercase font-bold text-zinc-500 tracking-widest">VALID</span>
-                  <span className="font-mono text-[8px] text-zinc-300">
-                    {cardExpiry || "MM/AA"}
-                  </span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-[5px] uppercase font-bold text-zinc-500 tracking-widest">CVC</span>
-                  <span className="font-mono text-[8px] text-zinc-300">
-                    {cardCvc || "•••"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* FORM FIELDS */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
