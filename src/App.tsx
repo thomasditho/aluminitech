@@ -187,11 +187,6 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!donorName || !donorEmail) {
-      setErrorMessage(lang === "PT" ? "Por favor, preencha seu nome e e-mail." : "Please fill in your name and email.");
-      return;
-    }
-
     setLoading(true);
     setErrorMessage(null);
 
@@ -209,8 +204,8 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
         body: JSON.stringify({
           amount,
           currency: currencies[currency].code,
-          donorName,
-          donorEmail,
+          donorName: donorName || (lang === "PT" ? "Apoiador Anônimo" : "Anonymous Supporter"),
+          donorEmail: donorEmail || "anonimo@aluminitech.org",
         }),
       });
 
@@ -226,8 +221,8 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
         payment_method: {
           card: cardNumberElement,
           billing_details: {
-            name: donorName,
-            email: donorEmail,
+            name: donorName || (lang === "PT" ? "Apoiador Anônimo" : "Anonymous Supporter"),
+            email: donorEmail || "anonimo@aluminitech.org",
           },
         },
       });
@@ -237,7 +232,11 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
       }
 
       if (result.paymentIntent?.status === "succeeded") {
-        onSuccess(amount, donorName, donorEmail);
+        onSuccess(
+          amount,
+          donorName || (lang === "PT" ? "Apoiador Anônimo" : "Anonymous Supporter"),
+          donorEmail || (lang === "PT" ? "Não fornecido" : "Not provided")
+        );
       } else {
         throw new Error(lang === "PT" ? "O pagamento não pôde ser completado." : "Payment could not be completed.");
       }
@@ -253,12 +252,11 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="donor-name-real" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
-          {t.nameLabel}
+          {t.nameLabel} <span className="opacity-60 text-[10px] font-normal lowercase">({lang === "PT" ? "opcional" : "optional"})</span>
         </label>
         <input
           id="donor-name-real"
           type="text"
-          required
           value={donorName}
           onChange={(e) => setDonorName(e.target.value)}
           placeholder="Ex: Gabriel Santos"
@@ -268,12 +266,11 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
 
       <div>
         <label htmlFor="donor-email-real" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
-          {t.emailLabel}
+          {t.emailLabel} <span className="opacity-60 text-[10px] font-normal lowercase">({lang === "PT" ? "opcional" : "optional"})</span>
         </label>
         <input
           id="donor-email-real"
           type="email"
-          required
           value={donorEmail}
           onChange={(e) => setDonorEmail(e.target.value)}
           placeholder="seu@email.com"
@@ -392,8 +389,8 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!donorName || !donorEmail || !cardNumber || !cardExpiry || !cardCvc) {
-      setErrorMessage(lang === "PT" ? "Por favor, preencha todos os dados de cobrança." : "Please fill in all billing information.");
+    if (!cardNumber || !cardExpiry || !cardCvc) {
+      setErrorMessage(lang === "PT" ? "Por favor, preencha todos os dados do cartão." : "Please fill in all card details.");
       return;
     }
 
@@ -422,7 +419,11 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
       } else {
         clearInterval(interval);
         setLoading(false);
-        onSuccess(amount, donorName, donorEmail);
+        onSuccess(
+          amount,
+          donorName || (lang === "PT" ? "Apoiador Anônimo" : "Anonymous Supporter"),
+          donorEmail || (lang === "PT" ? "Não fornecido" : "Not provided")
+        );
       }
     }, 700);
   };
@@ -433,12 +434,11 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="donor-name-mock" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
-            {t.nameLabel}
+            {t.nameLabel} <span className="opacity-60 text-[10px] font-normal lowercase">({lang === "PT" ? "opcional" : "optional"})</span>
           </label>
           <input
             id="donor-name-mock"
             type="text"
-            required
             value={donorName}
             onChange={(e) => setDonorName(e.target.value)}
             placeholder="Ex: Gabriel Santos"
@@ -448,12 +448,11 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
 
         <div>
           <label htmlFor="donor-email-mock" className="text-xs font-semibold text-slate-700 tracking-wide block mb-1">
-            {lang === "PT" ? "E-mail para Recibo e Boletins" : "Email for Receipt and Bulletins"}
+            {lang === "PT" ? "E-mail para Recibo e Boletins" : "Email for Receipt and Bulletins"} <span className="opacity-60 text-[10px] font-normal lowercase">({lang === "PT" ? "opcional" : "optional"})</span>
           </label>
           <input
             id="donor-email-mock"
             type="email"
-            required
             value={donorEmail}
             onChange={(e) => setDonorEmail(e.target.value)}
             placeholder="seu@email.com"
