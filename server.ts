@@ -12,10 +12,8 @@ function getStripe(): Stripe {
     if (!key) {
       throw new Error("A variável de ambiente STRIPE_SECRET_KEY é obrigatória.");
     }
-    // Inicialização da SDK oficial com a versão de API mais recente
-    stripeClient = new Stripe(key, {
-      apiVersion: "2025-02-18-preview" as any,
-    });
+    // Inicialização da SDK oficial
+    stripeClient = new Stripe(key);
   }
   return stripeClient;
 }
