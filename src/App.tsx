@@ -156,14 +156,23 @@ const DinersLogoSvg = () => (
   </svg>
 );
 
+const currencies = {
+  EUR: { symbol: "€", code: "eur", rate: 1.0, label: "Euro (EUR)", locale: "de-DE" },
+  BRL: { symbol: "R$", code: "brl", rate: 6.0, label: "Real (BRL)", locale: "pt-BR" },
+  USD: { symbol: "$", code: "usd", rate: 1.08, label: "Dólar (USD)", locale: "en-US" },
+};
+type CurrencyType = "EUR" | "BRL" | "USD";
+
 interface CheckoutFormProps {
   amount: number;
+  currency: CurrencyType;
+  currencySymbol: string;
   tierName: string;
   onSuccess: (amount: number, donorName: string, donorEmail: string) => void;
 }
 
 // 1. FORMULÁRIO DE PRODUÇÃO SECRETO E PRIVADO (USANDO STRIPE REAL)
-function RealCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
+function RealCheckoutForm({ amount, currency, currencySymbol, tierName, onSuccess }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [donorName, setDonorName] = useState("");
@@ -195,7 +204,7 @@ function RealCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
-          currency: "eur",
+          currency: currencies[currency].code,
           donorName,
           donorEmail,
         }),
@@ -307,7 +316,7 @@ function RealCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
         disabled={loading}
         className="mt-2 w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-3 px-4 rounded-lg text-xs uppercase tracking-widest active:scale-[0.98] transition-all shadow-md shadow-orange-500/10 disabled:opacity-50"
       >
-        {loading ? "Processando..." : `Confirmar Pagamento • € ${amount}`}
+        {loading ? "Processando..." : `Confirmar Pagamento • ${currencySymbol} ${amount}`}
       </button>
 
       {/* Trust icons underneath */}
@@ -331,7 +340,7 @@ function RealCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
 }
 
 // 2. SIMULADOR HÍBRIDO E INTERATIVO DE ALTA FIDELIDADE (VIRTUAL CREDIT CARD & VISA NET)
-function MockCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
+function MockCheckoutForm({ amount, currency, currencySymbol, tierName, onSuccess }: CheckoutFormProps) {
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -377,7 +386,7 @@ function MockCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
     const traceSteps = [
       "Iniciando handshake seguro...",
       "Criptografando payload de dados pelo canal VISA Net...",
-      "Processando equivalência líquida em Euros (€)...",
+      `Processando equivalência líquida em ${currencies[currency].label}...`,
       "Doação autorizada com sucesso!"
     ];
 
@@ -547,7 +556,7 @@ function MockCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
           disabled={loading}
           className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-3 px-4 rounded-lg text-xs uppercase tracking-widest active:scale-[0.98] transition-all shadow-md shadow-orange-500/10 disabled:opacity-50"
         >
-          {loading ? "Sincronizando..." : `Confirmar Pagamento • € ${amount}`}
+          {loading ? "Sincronizando..." : `Confirmar Pagamento • ${currencySymbol} ${amount}`}
         </button>
 
         {/* Brand logos in a beautiful row below */}
@@ -571,10 +580,42 @@ function MockCheckoutForm({ amount, tierName, onSuccess }: CheckoutFormProps) {
   );
 }
 
+// Componente de Seleção de Moeda Premium com visual refinado
+const CurrencySelector = ({ current, onChange, theme = "dark" }: { current: CurrencyType; onChange: (c: CurrencyType) => void; theme?: "dark" | "light" }) => {
+  return (
+    <div className={`inline-flex rounded-lg p-0.5 border ${
+      theme === "dark" 
+        ? "bg-zinc-950 border-zinc-800" 
+        : "bg-slate-100 border-slate-200"
+    }`}>
+      {(Object.keys(currencies) as CurrencyType[]).map((c) => {
+        const isActive = current === c;
+        return (
+          <button
+            key={c}
+            type="button"
+            onClick={() => onChange(c)}
+            className={`px-2 py-1 text-[10px] sm:text-xs font-bold font-mono rounded transition-all ${
+              isActive
+                ? "bg-[#f97316] text-white shadow-sm"
+                : theme === "dark"
+                  ? "text-zinc-500 hover:text-zinc-300"
+                  : "text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            {c}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function App() {
   const [view, setView] = useState<"landing" | "checkout">("landing");
+  const [currency, setCurrency] = useState<CurrencyType>("BRL");
   const [selectedTier, setSelectedTier] = useState<typeof tiers[0] | null>(null);
-  const [customAmount, setCustomAmount] = useState<string>("25");
+  const [customAmount, setCustomAmount] = useState<string>("150");
   const [isSuccess, setIsSuccess] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalPrice, setModalPrice] = useState(0);
@@ -595,11 +636,11 @@ export default function App() {
     if (tier) {
       setSelectedTier(tier);
       setModalTitle(tier.name);
-      setModalPrice(tier.value);
+      setModalPrice(Math.round(tier.value * currencies[currency].rate));
     } else {
       setSelectedTier(null);
       setModalTitle("Contribuição Personalizada");
-      setModalPrice(Number(customAmount) || 25);
+      setModalPrice(Number(customAmount) || (currency === "BRL" ? 150 : 25));
     }
     setView("checkout");
   };
@@ -647,7 +688,15 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 font-sans">
+              <CurrencySelector current={currency} onChange={(c) => {
+                setCurrency(c);
+                if (selectedTier) {
+                  setModalPrice(Math.round(selectedTier.value * currencies[c].rate));
+                } else {
+                  setModalPrice(c === "BRL" ? 150 : 25);
+                }
+              }} theme="light" />
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[9px] font-mono font-semibold tracking-wider text-slate-500 uppercase">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>SSL 256-Bit</span>
@@ -678,8 +727,8 @@ export default function App() {
 
                   <div className="border-t border-slate-200 pt-3">
                     <span className="text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 block mb-1.5">VALOR INTEGRAL</span>
-                    <div className="text-4xl font-black text-[#f97316] font-mono tracking-tight leading-none">
-                      € {modalPrice.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
+                    <div className="text-4xl font-black text-[#f97316] font-mono tracking-tight leading-none animate-fade-in">
+                      {currencies[currency].symbol} {modalPrice.toLocaleString(currencies[currency].locale, { minimumFractionDigits: 2 })}
                     </div>
                   </div>
 
@@ -723,6 +772,8 @@ export default function App() {
                       <Elements stripe={stripePromise}>
                         <RealCheckoutForm
                           amount={modalPrice}
+                          currency={currency}
+                          currencySymbol={currencies[currency].symbol}
                           tierName={modalTitle}
                           onSuccess={handlePaymentSuccess}
                         />
@@ -730,6 +781,8 @@ export default function App() {
                     ) : (
                       <MockCheckoutForm
                         amount={modalPrice}
+                        currency={currency}
+                        currencySymbol={currencies[currency].symbol}
                         tierName={modalTitle}
                         onSuccess={handlePaymentSuccess}
                       />
@@ -781,7 +834,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between pt-2.5 border-t border-slate-200 font-bold text-xs text-slate-800">
                     <span>LÍQUIDO APORTADO</span>
-                    <span className="text-[#f97316]">€ {modalPrice.toLocaleString("de-DE", { minimumFractionDigits: 2 })}</span>
+                    <span className="text-[#f97316]">{currencies[currency].symbol} {modalPrice.toLocaleString(currencies[currency].locale, { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 
@@ -845,13 +898,19 @@ export default function App() {
               ALUMINITECH
             </span>
           </div>
-          <div className="flex items-center gap-6 text-sm font-medium text-zinc-400">
-            <a href="#projetos" className="hover:text-[#f97316] transition-colors hidden sm:inline">Projetos</a>
-            <a href="#impacto" className="hover:text-[#f97316] transition-colors hidden sm:inline">Impacto</a>
-            <a href="#doar" className="hover:text-[#f97316] transition-colors hidden sm:inline">Níveis</a>
+          <div className="flex items-center gap-3 sm:gap-6 text-sm font-medium text-zinc-400">
+            <a href="#projetos" className="hover:text-[#f97316] transition-colors hidden md:inline">Projetos</a>
+            <a href="#impacto" className="hover:text-[#f97316] transition-colors hidden md:inline">Impacto</a>
+            <a href="#doar" className="hover:text-[#f97316] transition-colors hidden md:inline">Níveis</a>
+            <CurrencySelector current={currency} onChange={(c) => {
+              setCurrency(c);
+              if (customAmount === "25" || customAmount === "150") {
+                setCustomAmount(c === "BRL" ? "150" : "25");
+              }
+            }} theme="dark" />
             <a
               href="#doar"
-              className="bg-[#f97316] text-zinc-950 px-5 py-2 rounded font-semibold text-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[#f97316]/20 shadow-md"
+              className="bg-[#f97316] text-zinc-950 px-4 py-2 rounded font-semibold text-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[#f97316]/20 shadow-md"
             >
               Contribuir
             </a>
@@ -995,7 +1054,7 @@ export default function App() {
               Níveis de Contribuição
             </h2>
             <p className="text-zinc-400 max-w-[55ch] mx-auto text-pretty">
-              Escolha um perfil oficial de liderança ou informe um valor adaptado em Euro (€).
+              Escolha um perfil oficial de liderança ou informe um valor adaptado em {currencies[currency].label}.
             </p>
           </div>
 
@@ -1021,10 +1080,10 @@ export default function App() {
                         {t.name}
                       </div>
                       <div
-                        className="text-3xl font-extrabold text-white mb-2"
+                        className="text-3xl font-extrabold text-white mb-2 animate-fade-in"
                         style={{ fontFamily: "var(--font-display)" }}
                       >
-                        {t.price}
+                        {currencies[currency].symbol} {Math.round(t.value * currencies[currency].rate).toLocaleString(currencies[currency].locale)}
                       </div>
                       <p className="text-xs text-zinc-400 leading-relaxed max-w-[24ch]">{t.desc}</p>
                     </div>
@@ -1065,10 +1124,10 @@ export default function App() {
                     Personalizado
                   </div>
                   <div
-                    className="text-2xl font-extrabold text-white mb-2"
+                    className="text-2xl font-extrabold text-white mb-2 animate-fade-in"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
-                    € Outro Valor
+                    {currencies[currency].symbol} Outro Valor
                   </div>
                   <p className="text-xs text-zinc-400 leading-relaxed mb-3">
                     Aporte livremente de acordo com suas metas de investimento em ciência.
@@ -1077,16 +1136,16 @@ export default function App() {
 
                 <div className="border-t border-zinc-800/80 pt-4 flex flex-col gap-2">
                   <label htmlFor="custom-input" className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider font-semibold">
-                    Valor do Aporte (€)
+                    Valor do Aporte ({currencies[currency].symbol})
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-semibold text-sm">€</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-semibold text-sm">{currencies[currency].symbol}</span>
                     <input
                       id="custom-input"
                       type="text"
                       value={customAmount}
                       onChange={handleCustomAmountChange}
-                      placeholder="25"
+                      placeholder={currency === "BRL" ? "150" : "25"}
                       className="w-full bg-zinc-950 border border-zinc-800 pl-9 pr-3 py-2 rounded text-sm text-white focus:outline-none focus:border-[#f97316]"
                     />
                   </div>
