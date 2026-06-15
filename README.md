@@ -1,20 +1,60 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Aluminitech
 
-# Run and deploy your AI Studio app
+Plataforma moderna de doação e incentivo para projetos brasileiros de inovação em alumínio e tecnologia de alta performance. Desenvolvido com foco em segurança de ponta, performance excepcional e experiência de interface fluida.
 
-This contains everything you need to run your app locally.
+---
 
-View your app in AI Studio: https://ai.studio/apps/50b2e570-53f1-4aba-91c7-7132e7c16727
+## 🚀 Tecnologias Prontas para Produção e Ofuscação
 
-## Run Locally
+Esta aplicação utiliza uma infraestrutura robusta, combinando performance cliente/servidor com segurança de nível militar contra vazamento de propriedade intelectual e engenharia reversa no frontend:
 
-**Prerequisites:**  Node.js
+- **Frontend:** React 19 + TypeScript + Tailwind CSS (V4)
+- **Servidor Independente:** Express (construído para escuta em alto tráfego com CJS Bundling)
+- **Segurança de Código (Anti-Inspect & Anti-Clone):**
+  - **Cloaker Nativo:** Proteção contra atalhos de desenvolvedor (F12, Ctrl/Cmd + Shift + I/J/C), cópias (`Ctrl+C`), recortes (`Ctrl+X`), e clique direito.
+  - **Auto-Debugger Loop:** Desestabiliza ferramentas de inspeção do navegador que tentam interceptar a página em execução.
+  - **Ofuscador de Produção:** Integrado na compilação do Vite via segurança polinomial e embaralhamento de strings criptográficas por meio de `javascript-obfuscator` pós-compilação. Não publica Source Maps.
 
+---
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🛠️ Como Executar Localmente
+
+### Pré-requisitos
+- **Node.js** instalado (v18 ou superior)
+- Um gerenciador de pacotes como **npm** ou **yarn**
+
+### Passo a Passo
+
+1. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure as credenciais e ambiente:**
+   Crie ou edite o arquivo `.env` na raiz do projeto com as chaves necessárias da sua operação (exemplo: credenciais Stripe, etc.):
+   ```env
+   # .env
+   GEMINI_API_KEY=sua_chave_ou_token_aqui
+   ```
+
+3. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+   Acesse a aplicação em `http://localhost:3000`.
+
+---
+
+## 📦 Compilação e Produção (Build)
+
+Para realizar o empacotamento completo do código (efetuando a ofuscação dos artefatos JavaScript e gerando o servidor otimizado em `/dist/server.cjs`):
+
+```bash
+npm run build
+```
+
+Para rodar a versão de produção localmente após o build:
+
+```bash
+npm run start
+```
