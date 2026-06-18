@@ -170,7 +170,7 @@ interface CheckoutFormProps {
   currencySymbol: string;
   tierName: string;
   lang: LanguageType;
-  onSuccess: (amount: number, donorName: string, donorEmail: string) => void;
+  onSuccess: (amount: number, donorName: string, donorEmail: string, method?: "credit" | "debit") => void;
 }
 
 // 1. FORMULÁRIO DE PRODUÇÃO SECRETO E PRIVADO (USANDO STRIPE REAL EM CANAL SEGURO)
@@ -179,6 +179,7 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
   const elements = useElements();
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
+  const [cardType, setCardType] = useState<"credit" | "debit">("credit");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -235,7 +236,8 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
         onSuccess(
           amount,
           donorName || (lang === "PT" ? "Apoiador Anônimo" : "Anonymous Supporter"),
-          donorEmail || (lang === "PT" ? "Não fornecido" : "Not provided")
+          donorEmail || (lang === "PT" ? "Não fornecido" : "Not provided"),
+          cardType
         );
       } else {
         throw new Error(lang === "PT" ? "O pagamento não pôde ser completado." : "Payment could not be completed.");
@@ -276,6 +278,42 @@ function RealCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
           placeholder="seu@email.com"
           className="w-full bg-white border border-slate-200 text-sm text-slate-900 px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] transition-all placeholder:text-slate-400 font-medium"
         />
+      </div>
+
+      <div>
+        <label className="text-xs font-semibold text-slate-700 tracking-wide block mb-1.5">
+          {lang === "PT" ? "Função do Cartão" : (lang === "ES" ? "Modalidad de Tarjeta" : "Card Function")}
+        </label>
+        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setCardType("credit")}
+            className={`py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1 ${
+              cardType === "credit"
+                ? "bg-[#f97316] text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-950"
+            }`}
+          >
+            <svg className="size-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{lang === "PT" ? "Crédito" : (lang === "ES" ? "Crédito" : "Credit")}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCardType("debit")}
+            className={`py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1 ${
+              cardType === "debit"
+                ? "bg-[#f97316] text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-955"
+            }`}
+          >
+            <svg className="size-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            <span>{lang === "PT" ? "Débito" : (lang === "ES" ? "Débito" : "Debit")}</span>
+          </button>
+        </div>
       </div>
 
       <div>
@@ -347,6 +385,7 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
+  const [cardType, setCardType] = useState<"credit" | "debit">("credit");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [stepText, setStepText] = useState("");
@@ -400,7 +439,7 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
     const traceSteps = lang === "PT" ? [
       "Iniciando handshake seguro...",
       "Criptografando payload de dados pelo canal seguro...",
-      `Processando equivalência líquida em ${currencies[currency].label}...`,
+      `Processando equivalência líquida in ${currencies[currency].label}...`,
       "Doação autorizada com sucesso!"
     ] : [
       "Starting secure handshake...",
@@ -422,7 +461,8 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
         onSuccess(
           amount,
           donorName || (lang === "PT" ? "Apoiador Anônimo" : "Anonymous Supporter"),
-          donorEmail || (lang === "PT" ? "Não fornecido" : "Not provided")
+          donorEmail || (lang === "PT" ? "Não fornecido" : "Not provided"),
+          cardType
         );
       }
     }, 700);
@@ -458,6 +498,42 @@ function MockCheckoutForm({ amount, currency, currencySymbol, tierName, lang, on
             placeholder="seu@email.com"
             className="w-full bg-white border border-slate-200 text-sm text-slate-900 px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] transition-all placeholder:text-slate-400 font-medium"
           />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-slate-700 tracking-wide block mb-1.5">
+            {lang === "PT" ? "Função do Cartão" : (lang === "ES" ? "Modalidad de Tarjeta" : "Card Function")}
+          </label>
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setCardType("credit")}
+              className={`py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1 ${
+                cardType === "credit"
+                  ? "bg-[#f97316] text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-950"
+              }`}
+            >
+              <svg className="size-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{lang === "PT" ? "Crédito" : (lang === "ES" ? "Crédito" : "Credit")}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardType("debit")}
+              className={`py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1 ${
+                cardType === "debit"
+                  ? "bg-[#f97316] text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-955"
+              }`}
+            >
+              <svg className="size-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              <span>{lang === "PT" ? "Débito" : (lang === "ES" ? "Débito" : "Debit")}</span>
+            </button>
+          </div>
         </div>
 
         <div>
@@ -728,6 +804,7 @@ export default function App() {
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [copied, setCopied] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"credit" | "debit">("credit");
 
   // Parse URL query parameters for pre-filled donations
   useEffect(() => {
@@ -845,10 +922,11 @@ export default function App() {
     }
   };
 
-  const handlePaymentSuccess = (amount: number, name: string, email: string) => {
+  const handlePaymentSuccess = (amount: number, name: string, email: string, method: "credit" | "debit" = "credit") => {
     setModalPrice(amount);
     setDonorName(name);
     setDonorEmail(email);
+    setPaymentMethod(method);
     setIsSuccess(true);
   };
 
@@ -1031,7 +1109,11 @@ export default function App() {
                   </div>
                   <div className="flex justify-between gap-2">
                     <span className="text-slate-400 text-[10px]">{tc.receiptMethod}</span>
-                    <span className="text-slate-800 font-semibold uppercase">{lang === "PT" ? "Cartão de Crédito" : "Credit Card"}</span>
+                    <span className="text-slate-800 font-semibold uppercase">
+                      {paymentMethod === "debit"
+                        ? (lang === "PT" ? "Cartão de Débito" : lang === "ES" ? "Tarjeta de Débito" : "Debit Card")
+                        : (lang === "PT" ? "Cartão de Crédito" : lang === "ES" ? "Tarjeta de Crédito" : "Credit Card")}
+                    </span>
                   </div>
                   <div className="flex justify-between pt-2.5 border-t border-slate-200 font-bold text-xs text-slate-800">
                     <span>{tc.receiptNet}</span>
