@@ -1,7 +1,12 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+import { createServer as createViteServer, loadEnv } from "vite";
 import Stripe from "stripe";
+
+// Carregar variáveis de ambiente de arquivos .env / .env.local de forma robusta
+const env = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
+process.env.STRIPE_SECRET_KEY = env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+process.env.VITE_STRIPE_PUBLISHABLE_KEY = env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 // Inicialização tardia (lazy load) do cliente Stripe para evitar erros caso a chave ainda não esteja configurada
 let stripeClient: Stripe | null = null;
